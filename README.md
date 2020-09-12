@@ -1,4 +1,4 @@
-# tensorflow
+# tensorflow-math
 
 ## Project setup
 ```
