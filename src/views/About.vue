@@ -8,6 +8,7 @@
 <script>
 import * as tf from '@tensorflow/tfjs'
 import * as tfvis from '@tensorflow/tfjs-vis'
+import { getValue } from '@/common/getData'
 export default {
   name: 'About',
   mounted () {
@@ -46,7 +47,7 @@ export default {
 
     async run() {
       // Load and plot the original input data that we are going to train on.
-      const data = await this.getData();
+      const data = await getValue();
       const values = data.map(d => ({
         x: d.horsepower,
         y: d.mpg,
@@ -73,19 +74,7 @@ export default {
       this.testModel(model, data, tensorData);
       console.log('Done Training');
     },
-    async getData () {
-      const carsDataReq = await fetch('https://storage.googleapis.com/tfjs-tutorials/carsData.json');
-      
-      const carsData = await carsDataReq.json();
-
-      const cleaned = carsData.map(car => ({
-        mpg: car.Miles_per_Gallon,
-        horsepower: car.Horsepower,
-      }))
-      .filter(car => (car.mpg != null && car.horsepower != null));
-      console.log(cleaned);
-      return cleaned;
-    },
+    
 
     /**
      * Convert the input data to tensors that we can use for machine 
