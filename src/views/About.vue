@@ -8,7 +8,7 @@
 <script>
 import * as tf from '@tensorflow/tfjs'
 import * as tfvis from '@tensorflow/tfjs-vis'
-import { getValue } from '@/common/getData'
+import { getValue, convertToTensor } from '@/common/getData'
 export default {
   name: 'About',
   mounted () {
@@ -53,28 +53,28 @@ export default {
         y: d.mpg,
       }));
 
-      tfvis.render.scatterplot(
+      tfvis.render.scatterplot( // 渲染马力和效率二维坐标图
         {name: 'Horsepower v MPG'},
-        {values}, 
+        {values},
         {
           xLabel: 'Horsepower',
           yLabel: 'MPG',
           height: 300
         }
       );
-      const model = this.createModel();
-      tfvis.show.modelSummary({name: 'Model Summary'}, model);
+
+      const model = this.createModel(); // 创建Model
+      tfvis.show.modelSummary({name: 'Model Summary'}, model); // 把图层信息显示出来
 
       // Convert the data to a form we can use for training.
-      const tensorData = this.convertToTensor(data);
+      const tensorData = convertToTensor(data); // 准备训练数据
       const {inputs, labels} = tensorData;
           
       // Train the model
-      await this.trainModel(model, inputs, labels);
-      this.testModel(model, data, tensorData);
+      await this.trainModel(model, inputs, labels); // 训练模型
+      this.testModel(model, data, tensorData); // 测试模型
       console.log('Done Training');
     },
-    
 
     /**
      * Convert the input data to tensors that we can use for machine 
@@ -82,45 +82,10 @@ export default {
      * the data and _normalizing_ the data
      * MPG on the y-axis.
      */
-    convertToTensor(data) {
-      // 准备训练数据
-      // Wrapping these calculations in a tidy will dispose any 
-      // intermediate tensors.
-      
-      return tf.tidy(() => {
-        // Step 1. Shuffle the data    
-        tf.util.shuffle(data);
-
-        // Step 2. Convert data to Tensor
-        const inputs = data.map(d => d.horsepower)
-        const labels = data.map(d => d.mpg);
-
-        const inputTensor = tf.tensor2d(inputs, [inputs.length, 1]);
-        const labelTensor = tf.tensor2d(labels, [labels.length, 1]);
-
-        //Step 3. Normalize the data to the range 0 - 1 using min-max scaling
-        const inputMax = inputTensor.max();
-        const inputMin = inputTensor.min();  
-        const labelMax = labelTensor.max();
-        const labelMin = labelTensor.min();
-
-        const normalizedInputs = inputTensor.sub(inputMin).div(inputMax.sub(inputMin));
-        const normalizedLabels = labelTensor.sub(labelMin).div(labelMax.sub(labelMin));
-
-        return {
-          inputs: normalizedInputs,
-          labels: normalizedLabels,
-          // Return the min/max bounds so we can use them later.
-          inputMax,
-          inputMin,
-          labelMax,
-          labelMin,
-        }
-      });
-    },
+    
     async trainModel(model, inputs, labels) {
       // 训练模型
-      // Prepare the model for training.  
+      // Prepare the model for training.
       model.compile({
         optimizer: tf.train.adam(),
         loss: tf.losses.meanSquaredError,
@@ -152,7 +117,7 @@ export default {
       const [xs, preds] = tf.tidy(() => {
         
         const xs = tf.linspace(0, 1, 100);      
-        const preds = model.predict(xs.reshape([100, 1]));      
+        const preds = model.predict(xs.reshape([100, 1]));
         
         const unNormXs = xs
           .mul(inputMax.sub(inputMin))
