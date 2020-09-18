@@ -116,7 +116,7 @@ export default {
       // that we did earlier.
       const [xs, preds] = tf.tidy(() => {
         
-        const xs = tf.linspace(0, 1, 100);      
+        const xs = tf.linspace(0, 1, 100);
         const preds = model.predict(xs.reshape([100, 1]));
         
         const unNormXs = xs
